@@ -3,8 +3,8 @@
 class Route extends Kohana_Route
 {
 
-	protected $_beforeFilters = [];
-	protected $_afterFilters = [];
+	protected $_before_filters = [];
+	protected $_after_filters = [];
 
 	/**
 	 * Tests if the route matches a given URI. A successful match will return
@@ -96,9 +96,9 @@ class Route extends Kohana_Route
 
 	public function execute_before_filter($request, $response)
 	{
-		foreach ($this->_beforeFilters as $filter)
+		foreach ($this->_before_filters as $filter)
 		{
-			$result = call_user_func_array($filter, [$request, $response]);
+			$result = call_user_func_array($filter, array($request, $response));
 
 			if ($result)
 			{
@@ -109,9 +109,9 @@ class Route extends Kohana_Route
 
 	public function execute_after_filter($request, $response)
 	{
-		foreach ($this->_afterFilters as $filter)
+		foreach ($this->_after_filters as $filter)
 		{
-			$result = call_user_func_array($filter, [$request, $response]);
+			$result = call_user_func_array($filter, array($request, $response));
 
 			if ($result)
 			{
@@ -123,13 +123,13 @@ class Route extends Kohana_Route
 
 	public function before_filter(Closure $callback)
 	{
-		$this->_beforeFilters[] = $callback;
+		$this->_before_filters[] = $callback;
 		return $this;
 	}
 
 	public function after_filter(Closure $callback)
 	{
-		$this->after_filter[] = $callback;
+		$this->_after_filters[] = $callback;
 		return $this;
 	}
 

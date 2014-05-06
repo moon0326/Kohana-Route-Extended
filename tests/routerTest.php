@@ -65,32 +65,17 @@ class Router_Test extends Kohana_Unittest_TestCase
 		$this->route->filter('member-only', function(){});
 	}
 
-	public function test_groupping_routes_with_prefix()
+	public function test_should_allow_naming_a_clousre_route()
 	{
 
-		$found = false;
-		$registered_route = null;
-
-		$this->route->group(['prefix'=>'admin'], function($route) use(&$registered_route){
-
-			$route->get('test', 'test@test');
-
-		});
-
-		foreach (Route::all() as $route)
+		$this->route->get('test', array('as'=>'closure-route', 'uses'=>function()
 		{
+			return 'hello';
+		}));
 
-			$uri = $this->get_protected_property_value($route, '_uri');
+		$registered_route = Route::get('closure-route');
 
-			if ($uri === 'admin/test')
-			{
-				$found = true;
-			}
-
-		}
-
-		$this->assertTrue($found);
-
+		$this->assertTrue($registered_route instanceof Route);
 	}
 
 	public function test_resultful_should_create_seven_routes_for_a_controller()
@@ -186,18 +171,85 @@ class Router_Test extends Kohana_Unittest_TestCase
 
 	}
 
+	public function test_groupping_routes_with_prefix()
+	{
 
-	/**
-	 * @todo how do I test it!?
-	 */
-	public function test_groupping_routes_with_before_filter() {}
+		$found = false;
+		$registered_route = null;
 
-	/**
-	 * @todo how do I test it!?
-	 */
-	public function test_groupping_routes_with_after_filter() {}
+		$this->route->group(['prefix'=>'admin'], function($route) use(&$registered_route){
+
+			$route->get('test', 'test@test');
+
+		});
+
+		foreach (Route::all() as $route)
+		{
+
+			$uri = $this->get_protected_property_value($route, '_uri');
+
+			if ($uri === 'admin/test')
+			{
+				$found = true;
+			}
+
+		}
+
+		$this->assertTrue($found);
+
+	}
+
+	public function test_groupping_routes_with_before_filter()
+	{
+
+		$this->route->filter('member-only', function($router)
+		{
+			return false;
+		});
+
+		$registered_route = null;
+
+		$this->route->group(array('before'=>'member-only'), function($router) use (&$registered_route)
+		{
+			$registered_route = $router->get('test', function()
+			{
+				return 'you should not receive this';
+			});
+
+		});
+
+	 	$request = Request::factory('test', array(), false, array($registered_route))->execute();
+		$this->assertEquals(404, $request->status());
 
 
+	}
+
+	public function test_groupping_routes_with_after_filter()
+	{
+
+		$this->route->filter('append-test-at-the-end', function($request, $response)
+		{
+			$response->body($response->body().'-test');
+		});
+
+
+		$registered_route = null;
+
+		$this->route->group(array('after'=>'append-test-at-the-end'), function($router) use (&$registered_route)
+		{
+			$registered_route = $router->get('test', function()
+			{
+				return 'integration';
+			});
+
+		});
+
+
+	 	$request = Request::factory('test', array(), false, array($registered_route))->execute()->body();
+
+	 	$this->assertEquals('integration-test', $request);
+
+	}
 
 
 	/**
