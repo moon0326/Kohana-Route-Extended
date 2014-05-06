@@ -251,6 +251,108 @@ class Router_Test extends Kohana_Unittest_TestCase
 
 	}
 
+	public function test_should_not_proceed_if_a_before_filter_returns_false()
+	{
+
+		$this->route->filter('you-shall-not-pass-me', function(){
+			return false;
+		});
+
+		$registered_route = null;
+
+		$this->route->group(array('before'=>'you-shall-not-pass-me'), function($router) use (&$registered_route)
+		{
+			$registered_route = $router->get('test', function()
+			{
+				return 'hello';
+			});
+		});
+
+		$request = Request::factory('test', array(), false, array($registered_route))->execute();
+
+		$this->assertEquals(404, $request->status());
+
+	}
+
+	public function test_should_throw_an_exception_when_using_unregistered_filter()
+	{
+
+		$this->setExpectedException('InvalidArgumentException');
+
+		$registered_route = null;
+
+		$this->route->group(array('before'=>'i am not a registered filter'), function($router) use (&$registered_route)
+		{
+			$registered_route = $router->get('test', function()
+			{
+				return 'you should not see this';
+			});
+		});
+
+	}
+
+	public function test_should_allow_multiple_before_filters()
+	{
+
+		$this->route->filter('my name', function($request, $response)
+		{
+			$response->body($response->body().'my name ');
+		});
+
+		$this->route->filter('is', function($request, $response)
+		{
+			$response->body($response->body().'is ');
+		});
+
+		$registered_route = null;
+
+		$this->route->group(array('before'=>array('my name', 'is')), function($router) use (&$registered_route)
+		{
+
+			$registered_route = $router->get('test', function($request, $response)
+			{
+				return $response->body($response->body().'test');
+			});
+
+		});
+
+		$request_result = Request::factory('test', array(), false, array($registered_route))->execute()->body();
+
+		$this->assertEquals($request_result, 'my name is test');
+
+	}
+
+	public function test_should_allow_multiple_after_filters()
+	{
+
+		$this->route->filter('my name', function($request, $response)
+		{
+			$response->body($response->body().' my name');
+		});
+
+		$this->route->filter('is', function($request, $response)
+		{
+			$response->body($response->body().' is');
+		});
+
+		$registered_route = null;
+
+		$this->route->group(array('after'=>array('is', 'my name')), function($router) use (&$registered_route)
+		{
+
+			$registered_route = $router->get('test', function($request, $response)
+			{
+				return 'test';
+			});
+
+		});
+
+		$request_result = Request::factory('test', array(), false, array($registered_route))->execute()->body();
+
+		$this->assertEquals($request_result, 'test is my name');
+
+	}
+
 
 	/**
 	 * Helper methods

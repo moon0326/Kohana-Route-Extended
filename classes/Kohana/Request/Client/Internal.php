@@ -3,6 +3,14 @@
 class Kohana_Request_Client_Internal extends Request_Client
 {
 
+	protected function get_not_found_exception(Request $request)
+	{
+		return HTTP_Exception::factory(404,
+			'The requested URL :uri was not found on this server.',
+			array(':uri' => $request->uri())
+		)->request($request);
+	}
+
 	public function execute_request(Request $request, Response $response)
 	{
 		// Create the class prefix
@@ -49,7 +57,12 @@ class Kohana_Request_Client_Internal extends Request_Client
 			$route = $request->route();
 
 			// execute befoter filters
-			$route->execute_before_filter($request, $response);
+			$before_filter_result = $route->execute_before_filter($request, $response);
+
+			if ($before_filter_result === false)
+			{
+				throw $this->get_not_found_exception($request);
+			}
 
 			if (is_callable($controller))
 			{
@@ -60,10 +73,7 @@ class Kohana_Request_Client_Internal extends Request_Client
 
 				if ( ! class_exists($prefix.$controller))
 				{
-					throw HTTP_Exception::factory(404,
-						'The requested URL :uri was not found on this server.',
-						array(':uri' => $request->uri())
-					)->request($request);
+					throw $this->get_not_found_exception($request);
 				}
 
 				// Load the controller using reflection

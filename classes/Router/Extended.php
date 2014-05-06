@@ -109,24 +109,49 @@ class Router_Extended
 		 */
 		if ($this->in_group_closure === true)
 		{
-			$this->apply_group_attributes($route);
+			$this->apply_group_filters($route);
 		}
 
 		return $route;
 
 	}
 
-	protected function apply_group_attributes(Route $route)
+	public function has_filter($name)
+	{
+		return array_key_exists($name, $this->filters);
+	}
+
+	protected function apply_group_filters(Route $route)
 	{
 
-		if (array_key_exists('before', $this->in_group_config))
-		{
-			$route->before_filter($this->filters[$this->in_group_config['before']]);
-		}
+		$attributes = array(
+			'before' => 'before_filter',
+			'after'  => 'after_filter'
+		);
 
-		if (array_key_exists('after', $this->in_group_config))
+		foreach ($attributes as $attribute=>$route_method)
 		{
-			$route->after_filter($this->filters[$this->in_group_config['after']]);
+
+			if (array_key_exists($attribute, $this->in_group_config))
+			{
+
+				if (!is_array($this->in_group_config[$attribute]))
+				{
+					$this->in_group_config[$attribute] = array($this->in_group_config[$attribute]);
+				}
+
+				foreach ($this->in_group_config[$attribute] as $filter_name)
+				{
+					if (!$this->has_filter($filter_name))
+					{
+						throw new InvalidArgumentException("{$filter_name} is not a registered filter");
+					}
+
+					$route->$route_method($this->filters[$filter_name]);
+				}
+
+			}
+
 		}
 
 	}

@@ -100,7 +100,7 @@ class Route extends Kohana_Route
 		{
 			$result = call_user_func_array($filter, array($request, $response));
 
-			if ($result)
+			if ($result === false)
 			{
 				return $result;
 			}
