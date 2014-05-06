@@ -129,38 +129,12 @@ class Router_Test extends Kohana_Unittest_TestCase
 			)
 		);
 
-		foreach (Route::all() as $name=>$route)
-		{
-
-
-			if (array_key_exists($name, $expected_routes))
-			{
-
-				$validating_route = $expected_routes[$name];
-
-				$uri = $this->get_protected_property_value($route, '_uri');
-				$defatuls = $this->get_protected_property_value($route,'_defaults');
-
-				if (
-					$validating_route['uri'] === $uri
-					&&
-					$validating_route['controller'] === $defatuls['controller']
-					&&
-					$validating_route['action'] === $defatuls['action']
-				)
-				{
-					$expected_routes[$name]['validated'] = true;
-				}
-
-			}
-
-		}
-
 		$found_invalidate_expected_route = false;
 
-		foreach ($expected_routes as $expected_route)
+		foreach ($expected_routes as $name=>$expected_route)
 		{
-			if ($expected_route['validated'] !== true)
+			$route = Route::get($name);
+			if (!$route)
 			{
 				$found_invalidate_expected_route = true;
 				break;
@@ -174,29 +148,15 @@ class Router_Test extends Kohana_Unittest_TestCase
 	public function test_groupping_routes_with_prefix()
 	{
 
-		$found = false;
 		$registered_route = null;
 
 		$this->route->group(['prefix'=>'admin'], function($route) use(&$registered_route){
 
-			$route->get('test', 'test@test');
+			$registered_route = $route->get('test', array('as'=>'test', 'uses'=>'test@test'));
 
 		});
 
-		foreach (Route::all() as $route)
-		{
-
-			$uri = $this->get_protected_property_value($route, '_uri');
-
-			if ($uri === 'admin/test')
-			{
-				$found = true;
-			}
-
-		}
-
-		$this->assertTrue($found);
-
+		$this->assertTrue($registered_route instanceof Route);
 	}
 
 	public function test_groupping_routes_with_before_filter()

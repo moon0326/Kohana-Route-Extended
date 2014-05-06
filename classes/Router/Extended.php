@@ -21,8 +21,7 @@ class Router_Extended
 		}
 
 		/**
-		 * @Todo What's the fasest way to generate a non-collidable string?
-		 * Set route name if provided; use a randomly generate string otherwise
+		 * If callee didn't provid a name for this route, use a uniqid
 		 */
 		$name = isset($config['as']) ? $config['as'] : uniqid();
 
