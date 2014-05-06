@@ -1,3 +1,4 @@
+## Work in progress
 ### Basic Usage
 
 **GET Route**
@@ -33,7 +34,7 @@ A filter can be applied before/after a route.
 ```php
 Router::filter('member-only', function($request, $response)
 {
-	if (!Auth::instance()->get_user()) 
+	if (!Auth::instance()->get_user())
     {
     	HTTP::redirect("/", 302);
     }
@@ -58,4 +59,10 @@ Router::group(['prefix'=>'admin'], function()
 {
 	Router::get('dashboard', 'Admin@dashboard');
 });
+```
+
+### Restful Controller
+
+```php
+Router::restful('aResource', 'aController');
 ```
