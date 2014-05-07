@@ -9,19 +9,19 @@ Router::get('test' 'Test@test');
 **POST Route**
 
 ```php
-Router::post('test', 'Test@test');
+Router::post('test', 'Test@create');
 ```
 
 **DELETE Route**
 
 ```php
-Router::delete('test', 'Test@test');
+Router::delete('test', 'Test@delete');
 ```
 
 **PUT Route**
 
 ```php
-Router::put('test', 'Test@test');
+Router::put('test', 'Test@store');
 ```
 
 ### Notes on DELETE and PUT
