@@ -1,6 +1,6 @@
 ### Todos
 
-1. add a test for delete, put and patch requests
+1. add a test for delete, put, and patch requests
 
 
 ### Basic Usage
