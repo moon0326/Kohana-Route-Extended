@@ -96,7 +96,7 @@ Creates the following routes for User controller.
 | PUT/PATCH | /user/{param}	|	action_update	|	user.update |
 | DELETE	| /user/{param}	|	action_destroy	|	user.destroy|
 
-Sometimes you don't want to create the routes.
+Sometimes you don't want to create all the routes.
 
 creates all the routes **except** user.index
 ```php
