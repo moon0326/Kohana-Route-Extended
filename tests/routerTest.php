@@ -310,20 +310,20 @@ class Router_Test extends Kohana_Unittest_TestCase
 		));
 
 		$route_names = array(
-			'user.index'   => false,
-			'user.create'  => false,
-			'user.store'   => false,
-			'user.show'    => false,
-			'user.edit'    => false,
-			'user.update'  => false,
-			'user.destroy' => false
+			'user.index',
+			'user.create',
+			'user.store',
+			'user.show',
+			'user.edit',
+			'user.update',
+			'user.destroy'
 		);
 
 		$found = 0;
 
 		foreach (Route::all() as $name=>$route)
 		{
-			if (array_key_exists($name, $route_names))
+			if (in_array($name, $route_names))
 			{
 				$found += 1;
 			}
