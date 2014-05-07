@@ -1,4 +1,3 @@
-## Work in progress
 ### Basic Usage
 
 **GET Route**
@@ -97,9 +96,23 @@ Creates the following routes for User controller.
 | PUT/PATCH | /user/{param}	|	action_update	|	user.update |
 | DELETE	| /user/{param}	|	action_destroy	|	user.destroy|
 
+Sometimes you don't want to create all of the routes.
 
+creates all the routes **except** user.index
+```php
+Router::restful('user', 'User', array('except' => array('index')));
+```
 
+creates **only** user.index, user.create routes
+```php
+Router::restful('user', 'User', array('only' => array('index','create')));
+```
 
+If you want to use regular expression for the {param}, you can use **regex** option.
+
+```php
+Router::restful('user', 'User', array('regex' => '\d+''));
+```
 
 
 
