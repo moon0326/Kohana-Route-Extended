@@ -9,7 +9,7 @@ Router::get('test' 'Test@test');
 **POST Route**
 
 ```php
-Router::post('test', 'Test@create');
+Router::post('test', 'Test@store');
 ```
 
 **DELETE Route**
@@ -21,7 +21,7 @@ Router::delete('test', 'Test@delete');
 **PUT Route**
 
 ```php
-Router::put('test', 'Test@store');
+Router::put('test', 'Test@update');
 ```
 
 ### Notes on DELETE and PUT
