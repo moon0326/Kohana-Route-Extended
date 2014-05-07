@@ -10,7 +10,6 @@ class Router_Extended
 
 	protected function validate_and_get_configuration($config)
 	{
-
 		/**
 		 * If $config is not an array, we assume that it is Controller@actionName format
 		 * set the $config to 'uses' and put it into an array
@@ -52,12 +51,10 @@ class Router_Extended
 			'name'       => $name,
 			'regex'      => array_key_exists('regex', $config) ? $config['regex'] : null
 		);
-
 	}
 
 	protected function register_route($uri, $config, $method)
 	{
-
 		$configs = $this->validate_and_get_configuration($config);
 
 		/**
@@ -92,14 +89,12 @@ class Router_Extended
 				return true;
 			}
 
-
 			if ($request->method() !== $method)
 			{
 				return false;
 			}
 
 			return true;
-
 		});
 
 		/**
@@ -112,7 +107,6 @@ class Router_Extended
 		}
 
 		return $route;
-
 	}
 
 	public function has_filter($name)
@@ -122,7 +116,6 @@ class Router_Extended
 
 	protected function apply_group_filters(Route $route)
 	{
-
 		$attributes = array(
 			'before' => 'before_filter',
 			'after'  => 'after_filter'
@@ -130,10 +123,8 @@ class Router_Extended
 
 		foreach ($attributes as $attribute=>$route_method)
 		{
-
 			if (array_key_exists($attribute, $this->in_group_config))
 			{
-
 				if (!is_array($this->in_group_config[$attribute]))
 				{
 					$this->in_group_config[$attribute] = array($this->in_group_config[$attribute]);
@@ -148,23 +139,18 @@ class Router_Extended
 
 					$route->$route_method($this->filters[$filter_name]);
 				}
-
 			}
-
 		}
-
 	}
 
 	public function filter($name, Closure $callback)
 	{
-
 		if (array_key_exists($name, $this->filters))
 		{
 			throw new InvalidArgumentException("{$name} is already registered as a filter.");
 		}
 
 		$this->filters[$name] = $callback;
-
 	}
 
 	public function group($config, Closure $callback)
@@ -183,44 +169,38 @@ class Router_Extended
 	 * @param  string $resource   name of the resource
 	 * @param  string $controller a controller that defines rest actions
 	 */
-	public function restful($resource, $controller)
+	public function restful($resource, $controller, array $config = array())
 	{
+		$actions = array(
 
-		$this->get($resource, array(
-			'as'   => "{$resource}.index",
-			'uses' => "{$controller}@index"
-		));
+			'index'   => array(null, 'get'),
+			'create'  => array(null, 'post'),
+			'store'   => array('/create', 'get'),
+			'show'    => array('/<resource>', 'get'),
+			'edit'    => array('/<resource>/edit', 'get'),
+			'update'  => array('/<resource>', 'put'),
+			'destroy' => array('/<resource>', 'delete'),
 
-		$this->get($resource.'/create', array(
-			'as'   => "{$resource}.create",
-			'uses' => "{$controller}@create"
-		));
+		);
 
-		$this->post($resource, array(
-			'as'   => "{$resource}.store",
-			'uses' => "{$controller}@store"
-		));
+		if (array_key_exists('except', $config) && is_array($config['except']))
+		{
+			$actions = array_diff_key($actions, array_fill_keys($config['except'], null));
+		}
 
-		$this->get($resource.'/<resource>', array(
-			'as'   => "{$resource}.show",
-			'uses' => "{$controller}@show"
-		));
+		if (array_key_exists('only', $config) && is_array($config['only']))
+		{
+			$actions = array_intersect_key($actions, array_fill_keys($config['only'], null));
+		}
 
-		$this->get($resource.'/<resource>/edit', array(
-			'as'   => "{$resource}.edit",
-			'uses' => "{$controller}@edit"
-		));
-
-		$this->put($resource.'/<resource>', array(
-			'as'   => "{$resource}.update",
-			'uses' => "{$controller}@update"
-		));
-
-		$this->delete($resource.'/<resource>', array(
-			'as'   => "{$resource}.destroy",
-			'uses' => "{$controller}@destroy"
-		));
-
+		foreach ($actions as $action => $action_config)
+		{
+			$this->$action_config[1]($resource . $action_config[0], array(
+				'as'    => $resource . '.' . $action,
+				'uses'  => $controller . '@' . $action,
+				'regex' => array_key_exists('regex', $config) ? $config['regex'] : null
+			));
+		}
 	}
 
 	public function get($uri, $config)

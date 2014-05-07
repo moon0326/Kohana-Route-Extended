@@ -5,7 +5,6 @@
  */
 class Router_Test extends Kohana_Unittest_TestCase
 {
-
 	public function setUp()
 	{
 		$this->route = new Router_Extended;
@@ -18,15 +17,12 @@ class Router_Test extends Kohana_Unittest_TestCase
 
 	public function test_should_throw_an_exception_for_an_imcomplete_controller_and_action()
 	{
-
 		$this->setExpectedException('InvalidArgumentException');
 		$this->route->get('test', 'incomplete');
-
 	}
 
 	public function test_should_register_a_route_without_a_name()
 	{
-
 		$found = false;
 		$uri = 'testuri';
 		$registered_route = $this->route->get($uri, 'Test@test');
@@ -42,19 +38,16 @@ class Router_Test extends Kohana_Unittest_TestCase
 		}
 
 		$this->assertTrue($found);
-
 	}
 
 	public function test_should_register_a_route_with_a_complete_controller_and_action()
 	{
-
 		$this->route->get('test', array(
 			'uses'=> 'Test@test',
 			'as' => 'test.test'
 		));
 		$registered_routte = Route::get('test.test');
 		$this->assertTrue($registered_routte instanceof Route);
-
 	}
 
 	public function test_should_throw_an_exception_when_registering_a_filter_twice()
@@ -67,7 +60,6 @@ class Router_Test extends Kohana_Unittest_TestCase
 
 	public function test_should_allow_naming_a_clousre_route()
 	{
-
 		$this->route->get('test', array('as'=>'closure-route', 'uses'=>function()
 		{
 			return 'hello';
@@ -142,12 +134,10 @@ class Router_Test extends Kohana_Unittest_TestCase
 		}
 
 		$this->assertFalse($found_invalidate_expected_route);
-
 	}
 
 	public function test_groupping_routes_with_prefix()
 	{
-
 		$registered_route = null;
 
 		$this->route->group(['prefix'=>'admin'], function($route) use(&$registered_route){
@@ -161,7 +151,6 @@ class Router_Test extends Kohana_Unittest_TestCase
 
 	public function test_groupping_routes_with_before_filter()
 	{
-
 		$this->route->filter('member-only', function($router)
 		{
 			return false;
@@ -180,13 +169,10 @@ class Router_Test extends Kohana_Unittest_TestCase
 
 	 	$request = Request::factory('test', array(), false, array($registered_route))->execute();
 		$this->assertEquals(404, $request->status());
-
-
 	}
 
 	public function test_groupping_routes_with_after_filter()
 	{
-
 		$this->route->filter('append-test-at-the-end', function($request, $response)
 		{
 			$response->body($response->body().'-test');
@@ -208,12 +194,10 @@ class Router_Test extends Kohana_Unittest_TestCase
 	 	$request = Request::factory('test', array(), false, array($registered_route))->execute()->body();
 
 	 	$this->assertEquals('integration-test', $request);
-
 	}
 
 	public function test_should_not_proceed_if_a_before_filter_returns_false()
 	{
-
 		$this->route->filter('you-shall-not-pass-me', function(){
 			return false;
 		});
@@ -231,12 +215,10 @@ class Router_Test extends Kohana_Unittest_TestCase
 		$request = Request::factory('test', array(), false, array($registered_route))->execute();
 
 		$this->assertEquals(404, $request->status());
-
 	}
 
 	public function test_should_throw_an_exception_when_using_unregistered_filter()
 	{
-
 		$this->setExpectedException('InvalidArgumentException');
 
 		$registered_route = null;
@@ -248,12 +230,10 @@ class Router_Test extends Kohana_Unittest_TestCase
 				return 'you should not see this';
 			});
 		});
-
 	}
 
 	public function test_should_allow_multiple_before_filters()
 	{
-
 		$this->route->filter('my name', function($request, $response)
 		{
 			$response->body($response->body().'my name ');
@@ -279,12 +259,10 @@ class Router_Test extends Kohana_Unittest_TestCase
 		$request_result = Request::factory('test', array(), false, array($registered_route))->execute()->body();
 
 		$this->assertEquals($request_result, 'my name is test');
-
 	}
 
 	public function test_should_allow_multiple_after_filters()
 	{
-
 		$this->route->filter('my name', function($request, $response)
 		{
 			$response->body($response->body().' my name');
@@ -310,22 +288,65 @@ class Router_Test extends Kohana_Unittest_TestCase
 		$request_result = Request::factory('test', array(), false, array($registered_route))->execute()->body();
 
 		$this->assertEquals($request_result, 'test is my name');
-
 	}
 
+	public function test_except_option_for_restful_controller()
+	{
+		$this->setExpectedException('Kohana_Exception');
+
+		$this->route->restful('user', 'User', array(
+			'except' => array('index')
+		));
+
+		Route::get('user.index');
+	}
+
+	public function test_only_option_for_restful_controller()
+	{
+		$this->clear_routes();
+
+		$this->route->restful('user', 'User', array(
+			'only' => array('index')
+		));
+
+		$route_names = array(
+			'user.index'   => false,
+			'user.create'  => false,
+			'user.store'   => false,
+			'user.show'    => false,
+			'user.edit'    => false,
+			'user.update'  => false,
+			'user.destroy' => false
+		);
+
+		$found = 0;
+
+		foreach (Route::all() as $name=>$route)
+		{
+			if (array_key_exists($name, $route_names))
+			{
+				$found += 1;
+			}
+		}
+
+		$this->assertEquals(1, $found);
+	}
 
 	/**
 	 * Helper methods
 	 */
-
 	private function get_protected_property_value($object, $_property)
 	{
 		$reflector = new ReflectionClass($object);
 		$property = $reflector->getProperty($_property);
 		$property->setAccessible(true);
 		return $property->getValue($object);
-
 	}
 
-
+	private function clear_routes()
+	{
+		$reflector = new ReflectionProperty('Route', '_routes');
+		$reflector->setAccessible(true);
+		$reflector->setValue(null, array());
+	}
 }

@@ -66,7 +66,7 @@ Router::group(['before'=>['member-only','paid-member-only']], function()
 });
 ```
 
-If one of the filters return **false**, the request stops immediately and 404 not found page will be displayed.
+If one of the filters returns **false**, the request stops immediately and 404 not found response object will be throwed.
 
 
 #####Prefixing a group of routes
