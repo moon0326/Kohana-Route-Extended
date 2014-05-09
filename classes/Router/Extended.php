@@ -77,19 +77,16 @@ class Router_Extended
              * @todo do we really need it? consider removing it
 			 */
 			$unsupported_methods = array('DELETE', 'PUT', 'PATCH');
+			$_method = $request->query('_METHOD', null);
 
-			if (
-				$request->method() === HTTP_Request::POST
-				&&
-				in_array($method, $unsupported_methods)
-				&&
-				in_array($request->query('_METHOD'), $unsupported_methods)
-			)
+			$requested_method = $request->method();
+
+			if (in_array($_method, $unsupported_methods))
 			{
-				return true;
+				$requested_method = $_method;
 			}
 
-			if ($request->method() !== $method)
+			if ($requested_method !== $method)
 			{
 				return false;
 			}
@@ -176,10 +173,10 @@ class Router_Extended
 			'index'   => array(null, 'get'),
 			'store'  => array(null, 'post'),
 			'create'   => array('/create', 'get'),
-			'show'    => array('/<resource>', 'get'),
-			'edit'    => array('/<resource>/edit', 'get'),
-			'update'  => array('/<resource>', 'put'),
-			'destroy' => array('/<resource>', 'delete'),
+			'show'    => array('/<id>', 'get'),
+			'edit'    => array('/<id>/edit', 'get'),
+			'update'  => array('/<id>', 'put'),
+			'destroy' => array('/<id>', 'delete'),
 
 		);
 

@@ -96,10 +96,10 @@ Creates the following routes for User controller.
 | GET    | /user  | action_index  | user.index            |
 | GET	| /user/create | action_create | user.create |
 | POST | /user | action_store | user.store |
-| GET 	| /user/{param} | action_show | user.show |
-| GET	| /user/{param}/edit	| action_edit | user.edit |
-| PUT/PATCH | /user/{param}	|	action_update	|	user.update |
-| DELETE	| /user/{param}	|	action_destroy	|	user.destroy|
+| GET 	| /user/{id} | action_show | user.show |
+| GET	| /user/{id}/edit	| action_edit | user.edit |
+| PUT/PATCH | /user/{id}	|	action_update	|	user.update |
+| DELETE	| /user/{id}	|	action_destroy	|	user.destroy|
 
 Sometimes you don't want to create all the routes.
 
@@ -113,7 +113,7 @@ creates **only** user.index, user.create routes
 Router::restful('user', 'User', array('only' => array('index','create')));
 ```
 
-If you want to use regular expression for the {param}, you can use **regex** option.
+If you want to use regular expression for the {id}, you can use **regex** option.
 
 ```php
 Router::restful('user', 'User', array('regex' => '\d+''));
