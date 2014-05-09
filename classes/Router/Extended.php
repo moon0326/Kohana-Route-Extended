@@ -174,8 +174,8 @@ class Router_Extended
 		$actions = array(
 
 			'index'   => array(null, 'get'),
-			'create'  => array(null, 'post'),
-			'store'   => array('/create', 'get'),
+			'store'  => array(null, 'post'),
+			'create'   => array('/create', 'get'),
 			'show'    => array('/<resource>', 'get'),
 			'edit'    => array('/<resource>/edit', 'get'),
 			'update'  => array('/<resource>', 'put'),
