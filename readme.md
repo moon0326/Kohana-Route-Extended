@@ -50,6 +50,9 @@ Router::filter('member-only', function($request, $response)
     }
 });
 ```
+```php
+Router::get('admin-only', ['before'=>'check-admin', 'uses'=>'Admin@index']);
+```
 
 ### Groupped Routes
 
