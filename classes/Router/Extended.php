@@ -76,8 +76,8 @@ class Router_Extended
 			 * This is a workaround.
              * @todo do we really need it? consider removing it
 			 */
-			$unsupported_methods = array('DELETE', 'PUT', 'PATCH');
-			$_method = $request->query('_METHOD', null);
+			$unsupported_methods = array('delete', 'put', 'patch');
+			$_method = $request->query('_method', null);
 
 			$requested_method = $request->method();
 
@@ -100,8 +100,13 @@ class Router_Extended
 		 */
 		if ($this->in_group_closure === true)
 		{
-			$this->apply_group_filters($route);
+			$this->apply_route_filters($route, $this->in_group_config);
 		}
+		else if (is_array($config))
+		{
+			$this->apply_route_filters($route, $config);
+		}
+
 
 		return $route;
 	}
@@ -111,33 +116,39 @@ class Router_Extended
 		return array_key_exists($name, $this->filters);
 	}
 
-	protected function apply_group_filters(Route $route)
+	protected function apply_route_filters($route, $config)
 	{
-		$attributes = array(
-			'before' => 'before_filter',
-			'after'  => 'after_filter'
-		);
 
-		foreach ($attributes as $attribute=>$route_method)
+		$availableFilters = array('before', 'after');
+
+		foreach ($availableFilters as $availableFilter)
 		{
-			if (array_key_exists($attribute, $this->in_group_config))
+
+			if (array_key_exists($availableFilter, $config))
 			{
-				if (!is_array($this->in_group_config[$attribute]))
+				$method_on_route = $availableFilter . '_filter';
+
+				if (!is_array($config[$availableFilter]))
 				{
-					$this->in_group_config[$attribute] = array($this->in_group_config[$attribute]);
+					$config[$availableFilter] = array($config[$availableFilter]);
 				}
 
-				foreach ($this->in_group_config[$attribute] as $filter_name)
+				foreach ($config[$availableFilter] as $filter_name)
 				{
-					if (!$this->has_filter($filter_name))
+					if ($this->has_filter($filter_name))
 					{
-						throw new InvalidArgumentException("{$filter_name} is not a registered filter");
+						$route->$method_on_route($this->filters[$filter_name]);
 					}
-
-					$route->$route_method($this->filters[$filter_name]);
+					else
+					{
+						throw new InvalidArgumentException("{$filter_name} filter doesn't exist.");
+					}
 				}
+
 			}
+
 		}
+
 	}
 
 	public function filter($name, Closure $callback)
@@ -190,10 +201,19 @@ class Router_Extended
 			$actions = array_intersect_key($actions, array_fill_keys($config['only'], null));
 		}
 
+		if (array_key_exists('namePrefix', $config))
+		{
+			$namePrefix = $config['namePrefix'];
+		}
+		else
+		{
+			$namePrefix = $resource;
+		}
+
 		foreach ($actions as $action => $action_config)
 		{
 			$this->$action_config[1]($resource . $action_config[0], array(
-				'as'    => $resource . '.' . $action,
+				'as'    => $namePrefix . '.' . $action,
 				'uses'  => $controller . '@' . $action,
 				'regex' => array_key_exists('regex', $config) ? $config['regex'] : null
 			));
