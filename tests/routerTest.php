@@ -196,6 +196,35 @@ class Router_Test extends Kohana_Unittest_TestCase
 	 	$this->assertEquals('integration-test', $request);
 	}
 
+	public function test_should_allow_using_a_filter_for_a_route_in_a_group()
+	{
+		$this->route->filter('append-test2-at-the-end', function($request, $response)
+		{
+			$response->body($response->body().'test2');
+		});
+
+		$this->route->filter('append-test3-at-the-end', function($request, $response)
+		{
+			$response->body($response->body().'-test3');
+		});
+
+
+		$registered_route = null;
+
+		$this->route->group(array('after'=>'append-test2-at-the-end'), function($router) use (&$registered_route)
+		{
+			$registered_route = $router->get('test', array('after'=>'append-test3-at-the-end', 'uses'=>function(){
+
+				return 'test-';
+
+			}));
+
+		});
+
+	 	$request = Request::factory('test', array(), false, array($registered_route))->execute()->body();
+	 	$this->assertEquals('test-test2-test3', $request);
+	}
+
 	public function test_should_not_proceed_if_a_before_filter_returns_false()
 	{
 		$this->route->filter('you-shall-not-pass-me', function(){
