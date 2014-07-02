@@ -34,7 +34,7 @@ Router::put('test', 'Test@update');
 HTML form doesn't support DELETE/PUT request. You have a couple of options.
 
 1. Use an AJAX call instead.
-2. create a hidden input element as **\_method** and assign either DELETE/PUT for its value. The router class will check the value of **_method** if it exists.
+2. create a hidden input element as **\_method** and assign either delete/put for its value. The router class will check the value of **_method** if it exists.
 
 ### Router Filters
 
