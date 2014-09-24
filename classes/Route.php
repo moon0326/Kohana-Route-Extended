@@ -6,6 +6,50 @@ class Route extends Kohana_Route
 	protected $_before_filters = [];
 	protected $_after_filters = [];
 
+
+	/**
+	 * Filters to be run before route parameters are returned:
+	 *
+	 *     $route->filter(
+	 *         function(Route $route, $params, Request $request)
+	 *         {
+	 *             if ($request->method() !== HTTP_Request::POST)
+	 *             {
+	 *                 return FALSE; // This route only matches POST requests
+	 *             }
+	 *             if ($params AND $params['controller'] === 'welcome')
+	 *             {
+	 *                 $params['controller'] = 'home';
+	 *             }
+	 *
+	 *             return $params;
+	 *         }
+	 *     );
+	 *
+	 * To prevent a route from matching, return `FALSE`. To replace the route
+	 * parameters, return an array.
+	 *
+	 * [!!] Default parameters are added before filters are called!
+	 *
+	 * @throws  Kohana_Exception
+	 * @param   array   $callback   callback string, array, or closure
+	 * @return  $this
+	 */
+	public function filter($callback, $params = array())
+	{
+		if ( ! is_callable($callback))
+		{
+			throw new Kohana_Exception('Invalid Route::callback specified');
+		}
+
+		$this->_filters[] = [
+			'callback' => $callback,
+			'params'   => $params
+		];
+
+		return $this;
+	}
+
 	/**
 	 * Tests if the route matches a given URI. A successful match will return
 	 * all of the routed parameters as an array. A failed match will return
@@ -75,8 +119,9 @@ class Route extends Kohana_Route
 		{
 			foreach ($this->_filters as $callback)
 			{
+
 				// Execute the filter giving it the route, params, and request
-				$return = call_user_func($callback, $this, $params, $request);
+				$return = call_user_func($callback['callback'], $this, $params, $request, $callback['params']);
 
 				if ($return === FALSE)
 				{
@@ -121,13 +166,13 @@ class Route extends Kohana_Route
 		}
 	}
 
-	public function before_filter(Closure $callback)
+	public function before_filter($callback)
 	{
 		$this->_before_filters[] = $callback;
 		return $this;
 	}
 
-	public function after_filter(Closure $callback)
+	public function after_filter($callback)
 	{
 		$this->_after_filters[] = $callback;
 		return $this;

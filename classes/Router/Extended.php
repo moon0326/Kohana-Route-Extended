@@ -49,8 +49,35 @@ class Router_Extended
 			'controller' => $controller_and_action[0],
 			'action'     => $controller_and_action[1],
 			'name'       => $name,
-			'regex'      => array_key_exists('regex', $config) ? $config['regex'] : null
+			'regex'      => array_key_exists('regex', $config) ? $config['regex'] : null,
+			'before'     => array_key_exists('before', $config) ? array($config['before']) : array(),
+			'after'      => array_key_exists('after', $config) ? array($config['after']) : array(),
 		);
+	}
+
+	public static function methodFilter($route, $params, $request, $params)
+	{
+		/**
+		 * HTML form only supports POST and GET for HTTP request
+		 * This is a workaround.
+         * @todo do we really need it? consider removing it
+		 */
+		$unsupported_methods = array('delete', 'put', 'patch');
+		$_method = $request->query('_method', null);
+
+		$requested_method = $request->method();
+
+		if (in_array($_method, $unsupported_methods))
+		{
+			$requested_method = strtoupper($_method);
+		}
+
+		if ($requested_method !== $params['method'])
+		{
+			return false;
+		}
+
+		return true;
 	}
 
 	protected function register_route($uri, $config, $method)
@@ -65,34 +92,11 @@ class Router_Extended
 			$uri = $this->in_group_config['prefix'].'/'.$uri;
 		}
 
+
 		$route = Route::set($configs['name'], $uri, $configs['regex'])->defaults(array(
 			'controller' => $configs['controller'],
 			'action'     => $configs['action']
-		))->filter(function($route, $params, $request) use ($method)
-		{
-
-			/**
-			 * HTML form only supports POST and GET for HTTP request
-			 * This is a workaround.
-             * @todo do we really need it? consider removing it
-			 */
-			$unsupported_methods = array('delete', 'put', 'patch');
-			$_method = $request->query('_method', null);
-
-			$requested_method = $request->method();
-
-			if (in_array($_method, $unsupported_methods))
-			{
-				$requested_method = $_method;
-			}
-
-			if ($requested_method !== $method)
-			{
-				return false;
-			}
-
-			return true;
-		});
+		))->filter('Router_Extended::methodFilter', ['method'=>$method]);
 
 		/**
 		 * If current conext of this object is in a group's closure,
@@ -100,11 +104,15 @@ class Router_Extended
 		 */
 		if ($this->in_group_closure === true)
 		{
-			$this->apply_route_filters($route, $this->in_group_config);
+
+			$configs['before'] = array_merge($this->in_group_config['before'], $configs['before']);
+			$configs['after'] = array_merge($this->in_group_config['after'], $configs['after']);
+
+			$this->apply_route_filters($route, $configs);
 		}
-		else if (is_array($config))
+		else
 		{
-			$this->apply_route_filters($route, $config);
+			$this->apply_route_filters($route, $configs);
 		}
 
 
@@ -124,8 +132,9 @@ class Router_Extended
 		foreach ($availableFilters as $availableFilter)
 		{
 
-			if (array_key_exists($availableFilter, $config))
+			if (array_key_exists($availableFilter, $config) && $config[$availableFilter] !== null)
 			{
+
 				$method_on_route = $availableFilter . '_filter';
 
 				if (!is_array($config[$availableFilter]))
@@ -133,8 +142,11 @@ class Router_Extended
 					$config[$availableFilter] = array($config[$availableFilter]);
 				}
 
+
 				foreach ($config[$availableFilter] as $filter_name)
 				{
+
+
 					if ($this->has_filter($filter_name))
 					{
 						$route->$method_on_route($this->filters[$filter_name]);
@@ -151,7 +163,7 @@ class Router_Extended
 
 	}
 
-	public function filter($name, Closure $callback)
+	public function filter($name, $callback)
 	{
 		if (array_key_exists($name, $this->filters))
 		{
@@ -161,8 +173,29 @@ class Router_Extended
 		$this->filters[$name] = $callback;
 	}
 
-	public function group($config, Closure $callback)
+	public function group($config, $callback)
 	{
+
+		if (!array_key_exists('before', $config))
+		{
+			$config['before'] = array();
+		}
+
+		if (!is_array($config['before']))
+		{
+			$config['before'] = array($config['before']);
+		}
+
+		if (!array_key_exists('after', $config))
+		{
+			$config['after'] = array();
+		}
+
+		if (!is_array($config['after']))
+		{
+			$config['after'] = array($config['after']);
+		}
+
 		$this->in_group_closure = true;
 		$this->in_group_config = $config;
 
