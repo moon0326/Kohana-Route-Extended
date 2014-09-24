@@ -24,6 +24,13 @@ Router::delete('test', 'Test@delete');
 Router::put('test', 'Test@update');
 ```
 
+**Closure**
+```php
+Router::get('test', function() {
+	echo 'hello';
+});
+```
+
 ### Notes on DELETE and PUT
 
 HTML form doesn't support DELETE/PUT request. You have a couple of options.
@@ -47,7 +54,7 @@ Router::filter('member-only', function($request, $response)
 ```
 
 ```php
-Router::get('admin-only', ['before'=>'check-admin', 'uses'=>'Admin@index']);
+Router::get('admin-only', array('before'=>'check-admin', 'uses'=>'Admin@index'));
 ```
 
 If you want to cache your routes (recommended), you CANNOT use closures for filters or routes.
@@ -67,7 +74,7 @@ class FilterCollection
 You need to pass class::method to use it. 
 
 ```php
-Router::get('admin-only', ['before'=>'FilterCollection::checkAdmin', 'uses'=>'Admin@index']);
+Router::get('admin-only', array('before'=>'FilterCollection::checkAdmin', 'uses'=>'Admin@index'));
 ```
 
 
@@ -75,7 +82,7 @@ Router::get('admin-only', ['before'=>'FilterCollection::checkAdmin', 'uses'=>'Ad
 
 #####Using a before filter for a group of routes
 ```php
-Router::group(['before'=>'member-only'], function()
+Router::group(array('before'=>'member-only'), function()
 {
 	Router::get('member/info', 'Member@info');
 })
@@ -84,7 +91,7 @@ Router::group(['before'=>'member-only'], function()
 #####Using multiple filters for a group of routes
 
 ```php
-Router::group(['before'=>['member-only','paid-member-only']], function()
+Router::group(array('before'=>array('member-only','paid-member-only')), function()
 {
 	Router::get('premium-content', 'Premium@show');
 });
@@ -97,7 +104,7 @@ If one of the filters returns **false**, the request stops immediately and throw
 
 The following route matches admin/dashboard, and admin/report.
 ```php
-Router::group(['prefix'=>'admin'], function()
+Router::group(array('prefix'=>'admin'), function()
 {
 	Router::get('dashboard', 'Admin@dashboard');
     Router::get('report', 'Admin@Report');
