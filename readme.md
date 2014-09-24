@@ -45,9 +45,31 @@ Router::filter('member-only', function($request, $response)
     }
 });
 ```
+
 ```php
 Router::get('admin-only', ['before'=>'check-admin', 'uses'=>'Admin@index']);
 ```
+
+If you want to cache your routes (recommended), you CANNOT use closures for filters or routes.
+
+You probably want to use a class with static methods. An example would be:
+
+```php
+class FilterCollection
+{
+	public static function checkAdmin()
+	{
+		// do someting
+	}
+}
+```
+
+You need to pass class::method to use it. 
+
+```php
+Router::get('admin-only', ['before'=>'FilterCollection::checkAdmin', 'uses'=>'Admin@index']);
+```
+
 
 ### Groupped Routes
 
